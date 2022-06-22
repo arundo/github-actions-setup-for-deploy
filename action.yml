@@ -52,7 +52,7 @@ runs:
     - name: Login to Azure
       uses: Azure/login@v1.1
       with:
-        creds: '{"clientId":"${{ inputs.client-id }}","clientSecret":"${{ inputs.azure-client-secret }}","subscriptionId":"${{ inputs.subscription-id }}","tenantId":"${{ inputs.tenant-id }}"}'
+        creds: '{"clientId":"${{ inputs.client-id }}","clientSecret":"${{ inputs.client-secret }}","subscriptionId":"${{ inputs.subscription-id }}","tenantId":"${{ inputs.tenant-id }}"}'
 
     - name: Calculate github short sha
       id: short-sha

@@ -1,0 +1,59 @@
+name: Deploy docker image at Azure
+description: This deploys an existing short SHA tagged docker image to the namespace indicated
+
+inputs:
+  # Note that the below two have default values that should be Arundo-wide
+  cluster:
+    description: Kubernetes cluster resource name at Azure
+    required: true
+  deployment:
+    description: deployment in Kubernetes, expected to be the name of the service
+    required: true
+  overlays:
+    description: Kustomize overlays directory name
+    required: true
+  overlays-path:
+    description: path to Kustomize overlays directory
+    required: false
+    default: ops/kubernetes/overlays
+  product:
+    description: Arundo product e.g. marathon, identity
+    required: true
+  registry:
+    description: docker registry name at Azure
+    required: true
+  resource-group:
+    description: Resource group for cluster
+    required: true
+  sha-tag:
+    description: tag for commit, likely shortened sha hash
+    required: true
+  subscription:
+    description: Azure subscription name where cluster resource is housed
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Login to AKS
+      run: |
+        az aks get-credentials --admin --name $cluster --resource-group $resource_group --subscription "$subscription"
+      env:
+        cluster: ${{ inputs.cluster }}
+        resource_group: ${{ inputs.resource-group }}
+        subscription: ${{ inputs.subscription }}
+      shell: bash
+
+    - name: Deploy to kubernetes cluster
+      run: |
+        cd $path/$overlays/
+        kustomize edit set image deployment/$deployment $registry/$product/$deployment:$sha_tag
+        kubectl apply -k .
+      env:
+        deployment: ${{ inputs.deployment }}
+        overlays: ${{ inputs.overlays }}
+        path: ${{ inputs.overlays-path }}
+        product: ${{ inputs.product }}
+        registry: ${{ inputs.registry }}.azurecr.io
+        sha_tag: ${{ inputs.sha-tag }}
+      shell: bash

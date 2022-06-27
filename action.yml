@@ -14,6 +14,10 @@ inputs:
   language-version:
     description: Desired version in quotes
     required: true
+  nuget-token:
+    description: Nuget token if private packages
+    required: false
+    default: 'none'
   subscription-id:
     description: Azure subscriptionId
     required: true
@@ -41,11 +45,20 @@ runs:
         node-version: ${{ inputs.language-version }}
         
     - name: Setup .NET
+      if: inputs.language == 'dotnet' && inputs.nuget-token == 'none'
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: ${{ inputs.language-version }}
+        
+    - name: Setup .NET with token
       if: inputs.language == 'dotnet'
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: ${{ inputs.language-version }}
-
+        source-url: https://nuget.pkg.github.com/arundo/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{inputs.nuget-token}}
+        
     - name: Login to Azure
       uses: Azure/login@v1
       with:

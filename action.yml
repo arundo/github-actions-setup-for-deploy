@@ -51,7 +51,7 @@ runs:
         dotnet-version: ${{ inputs.language-version }}
         
     - name: Setup .NET with token
-      if: inputs.language == 'dotnet'
+      if: inputs.language == 'dotnet' && inputs.nuget-token != 'none'
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: ${{ inputs.language-version }}
@@ -59,6 +59,14 @@ runs:
       env:
         NUGET_AUTH_TOKEN: ${{inputs.nuget-token}}
         
+    - name: Install Nuget configuration so docker can use Arundo packages
+      if: inputs.language == 'dotnet' && inputs.nuget-token != 'none'
+      uses: finnp/create-file-action@master
+      env:
+        FILE_NAME: "nuget.config"
+        FILE_DATA: "<?xml version=\"1.0\" encoding=\"utf-8\"?><configuration><packageSources><add key=\"nuget.org\" value=\"https://api.nuget.org/v3/index.json\" protocolVersion=\"3\" /><add key=\"github\" value=\"https://nuget.pkg.github.com/arundo/index.json\" /></packageSources><packageSourceCredentials><github><add key=\"Username\" value=\"usernameNotReallyRequired\" /><add key=\"ClearTextPassword\" value=\"${{ inputs.nuget-token }}\" /></github></packageSourceCredentials></configuration>"
+    
+    
     - name: Login to Azure
       uses: Azure/login@v1
       with:
